@@ -18,7 +18,7 @@ type ConnectionOptions struct {
 func ConfigureAndParseFlags() ConnectionOptions {
 	addressPtr := flag.String("address", "localhost", "IRC server address")
 	portPtr := flag.Int("port", 6667, "IRC server port")
-	usernamePtr := flag.String("username", "todd", "Personal identifier")
+	usernamePtr := flag.String("username", "ryan", "Personal identifier")
 	flag.Parse()
 	return ConnectionOptions{
 		Address:  addressPtr,
@@ -44,8 +44,10 @@ func main() {
 	connection.Write(protocol.Commands.CapList())
 	connection.Write(protocol.Commands.Nick(*options.Username))
 	connection.Write(protocol.Commands.User(*options.Username))
+
+	buffer := bufio.NewReader(connection)
 	for {
-		message, _, err := bufio.NewReader(connection).ReadLine()
+		message, _, err := buffer.ReadLine()
 		if err != nil {
 			log.Fatal("Error reading from buffer\n", err)
 		}
@@ -65,7 +67,7 @@ func main() {
 		if data.Command == "CAP" {
 			connection.Write(protocol.Commands.CapEnd())
 			connection.Write([]byte("PING test\r\n"))
-			connection.Write([]byte("JOIN #foobar\r\n"))
+			connection.Write([]byte("JOIN #foobaz\r\n"))
 		}
 	}
 }

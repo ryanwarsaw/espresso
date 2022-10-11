@@ -23,7 +23,8 @@ func ParseMessage(message string) (Message, error) {
 
 		args := strings.Fields(message)
 		for i := 0; i < len(args); i++ {
-			if args[i] == "CAP" || args[i] == "PRIVMSG" {
+			// TODO: Define a lookup source for commands
+			if args[i] == "CAP" || args[i] == "PRIVMSG" || args[i] == "PING" {
 				command = args[i]
 				parameters = args[i+1:]
 				break

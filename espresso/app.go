@@ -2,13 +2,11 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 	"ryanwarsaw.com/protocol"
-	"strings"
 )
 
 type ConnectionOptions struct {
@@ -27,57 +25,6 @@ func ConfigureAndParseFlags() ConnectionOptions {
 		Port:     portPtr,
 		Username: usernamePtr,
 	}
-}
-
-type Message struct {
-	Tags       map[string]string
-	Source     string
-	Command    string
-	Parameters []string
-}
-
-// TODO: Clean this up
-func parseMessage(message string) (Message, error) {
-	if len(message) > 0 {
-		tags := make(map[string]string)
-		var command string
-		var source string
-		var parameters []string
-
-		args := strings.Fields(message)
-		for i := 0; i < len(args); i++ {
-			if args[i] == "CAP" {
-				command = "CAP"
-				parameters = args[i+1:]
-				break
-			}
-			// Handle tags
-			if args[i][0] == '@' {
-				rawTags := strings.Split(args[i][1:len(args[i])], ";")
-				for _, tag := range rawTags {
-					keyValuePair := strings.Split(tag, "=")
-					if len(keyValuePair) == 2 {
-						tags[keyValuePair[0]] = keyValuePair[1]
-					} else {
-						return Message{}, errors.New("invalid key/value pair in message tags")
-					}
-				}
-				continue
-			}
-			// Handle source
-			if args[i][0] == ':' {
-				source = args[i][1:len(args[i])]
-				continue
-			}
-		}
-		return Message{
-			Tags:       tags,
-			Source:     source,
-			Command:    command,
-			Parameters: parameters,
-		}, nil
-	}
-	return Message{}, errors.New("empty message")
 }
 
 func main() {
@@ -101,7 +48,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error reading from buffer\n", err)
 		}
-		data, err := parseMessage(string(message))
+		data, err := protocol.ParseMessage(string(message))
 		if err != nil {
 			log.Fatal("Error parsing message\n", err)
 		}

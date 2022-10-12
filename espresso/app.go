@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"ryanwarsaw.com/protocol"
 )
 
@@ -13,22 +14,39 @@ type ConnectionOptions struct {
 	Address  *string
 	Port     *int
 	Username *string
+	Debug    *bool
 }
 
 func ConfigureAndParseFlags() ConnectionOptions {
 	addressPtr := flag.String("address", "localhost", "IRC server address")
 	portPtr := flag.Int("port", 6667, "IRC server port")
 	usernamePtr := flag.String("username", "ryan", "Personal identifier")
+	debugPtr := flag.Bool("debug", false, "Enables network logging to debug.log file")
 	flag.Parse()
 	return ConnectionOptions{
 		Address:  addressPtr,
 		Port:     portPtr,
 		Username: usernamePtr,
+		Debug:    debugPtr,
 	}
+}
+
+func CreateDebugFile() *os.File {
+	file, err := os.OpenFile("debug.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatalf("Error creating debug file: %v", err)
+	}
+	return file
 }
 
 func main() {
 	options := ConfigureAndParseFlags()
+
+	if *options.Debug {
+		file := CreateDebugFile()
+		defer file.Close()
+		log.SetOutput(file)
+	}
 
 	fmt.Println("Connecting to server with address:", *options.Address)
 	fmt.Println("Using port:", *options.Port)
@@ -51,7 +69,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error reading from buffer\n", err)
 		}
-		fmt.Println((string(message)))
+		log.Println((string(message)))
 
 		data, err := protocol.ParseMessage(string(message))
 		if err != nil {

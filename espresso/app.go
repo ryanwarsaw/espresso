@@ -2,34 +2,12 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"log"
 	"net"
 	"os"
 	"ryanwarsaw.com/protocol"
 )
-
-type ConnectionOptions struct {
-	Address  *string
-	Port     *int
-	Username *string
-	Debug    *bool
-}
-
-func ConfigureAndParseFlags() ConnectionOptions {
-	addressPtr := flag.String("address", "localhost", "IRC server address")
-	portPtr := flag.Int("port", 6667, "IRC server port")
-	usernamePtr := flag.String("username", "ryan", "Personal identifier")
-	debugPtr := flag.Bool("debug", false, "Enables network logging to debug.log file")
-	flag.Parse()
-	return ConnectionOptions{
-		Address:  addressPtr,
-		Port:     portPtr,
-		Username: usernamePtr,
-		Debug:    debugPtr,
-	}
-}
 
 func CreateDebugFile() *os.File {
 	file, err := os.OpenFile("debug.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
@@ -48,10 +26,7 @@ func main() {
 		log.SetOutput(file)
 	}
 
-	fmt.Println("Connecting to server with address:", *options.Address)
-	fmt.Println("Using port:", *options.Port)
-	fmt.Println("Using username:", *options.Username)
-
+	log.Printf("Connecting to server with options:\n%+v\n", &options)
 	hostAddress := fmt.Sprintf("%s:%d", *options.Address, *options.Port)
 
 	connection, err := net.Dial("tcp4", hostAddress)

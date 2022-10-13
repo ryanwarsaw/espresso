@@ -3,11 +3,22 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/rivo/tview"
 	"log"
 	"net"
 	"os"
 	"ryanwarsaw.com/protocol"
 )
+
+var messagePanel = MessagePanel()
+var inputPanel = InputPanel()
+var messageLayout = MessageLayout(messagePanel, inputPanel)
+
+var channelPanel = ChannelPanel()
+var userPanel = UserPanel()
+var sidebarLayout = SideBarLayout(channelPanel, userPanel)
+
+var appLayout = AppLayout(messageLayout, sidebarLayout)
 
 func CreateDebugFile() *os.File {
 	file, err := os.OpenFile("debug.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
@@ -17,8 +28,20 @@ func CreateDebugFile() *os.File {
 	return file
 }
 
+func RenderApplication() {
+	app := tview.NewApplication()
+	app.SetRoot(appLayout, true)
+	app.SetFocus(inputPanel)
+	if err := app.Run(); err != nil {
+		log.Fatalf("Error rendering application: %v", err)
+	}
+	defer os.Exit(0)
+}
+
 func main() {
 	options := ConfigureAndParseFlags()
+
+	go RenderApplication()
 
 	if *options.Debug {
 		file := CreateDebugFile()
@@ -45,6 +68,7 @@ func main() {
 			log.Fatal("Error reading from buffer\n", err)
 		}
 		log.Println((string(message)))
+		messagePanel.AddItem(string(message), "", 0, nil)
 
 		data, err := protocol.ParseMessage(string(message))
 		if err != nil {

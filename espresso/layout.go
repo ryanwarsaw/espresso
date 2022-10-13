@@ -31,7 +31,9 @@ func MessagePanel() *tview.List {
 func InputPanel() *tview.InputField {
 	inputPanel := tview.NewInputField()
 	inputPanel.SetPlaceholder("Type message here...")
-	inputPanel.SetFieldWidth(0)
+	inputPanel.SetPlaceholderStyle(inputPanel.GetPlaceholderStyle().Background(tcell.ColorDarkSeaGreen))
+	inputPanel.SetPlaceholderTextColor(tcell.ColorWhite)
+	inputPanel.SetFieldBackgroundColor(tcell.ColorDarkSeaGreen)
 	return inputPanel
 }
 

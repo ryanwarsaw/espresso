@@ -28,26 +28,27 @@ func CreateDebugFile() *os.File {
 	return file
 }
 
-func RenderApplication() {
-	app := tview.NewApplication()
-	app.SetRoot(appLayout, true)
-	app.SetFocus(inputPanel)
-	if err := app.Run(); err != nil {
-		log.Fatalf("Error rendering application: %v", err)
-	}
-	defer os.Exit(0)
-}
-
 func main() {
 	options := ConfigureAndParseFlags()
-
-	go RenderApplication()
 
 	if *options.Debug {
 		file := CreateDebugFile()
 		defer file.Close()
 		log.SetOutput(file)
 	}
+
+	app := tview.NewApplication()
+	app.SetRoot(appLayout, true)
+	app.SetFocus(inputPanel)
+
+	// Akin to a UI thread, prevents the renderer and event loop
+	// from blocking the TCP client listener
+	go func() {
+		if err := app.Run(); err != nil {
+			log.Fatalf("Error rendering application: %v", err)
+		}
+		defer os.Exit(0)
+	}()
 
 	log.Printf("Connecting to server with options:\n%+v\n", &options)
 	hostAddress := fmt.Sprintf("%s:%d", *options.Address, *options.Port)
@@ -68,7 +69,9 @@ func main() {
 			log.Fatal("Error reading from buffer\n", err)
 		}
 		log.Println((string(message)))
-		messagePanel.AddItem(string(message), "", 0, nil)
+		app.QueueUpdateDraw(func() {
+			messagePanel.AddItem(string(message), "", 0, nil)
+		})
 
 		data, err := protocol.ParseMessage(string(message))
 		if err != nil {

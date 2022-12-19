@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"ryanwarsaw.com/protocol"
+	"github.com/gdamore/tcell/v2"
 )
 
 var messagePanel = MessagePanel()
@@ -61,6 +62,15 @@ func main() {
 	connection.Write(protocol.Commands.CapList())
 	connection.Write(protocol.Commands.Nick(*options.Username))
 	connection.Write(protocol.Commands.User(*options.Username))
+
+	inputPanel.SetDoneFunc(func(key tcell.Key) {
+		if (key == tcell.KeyEnter) {
+			message := inputPanel.GetText()
+			connection.Write([]byte("PRIVMSG #foobaz :" + message + "\r\n"))
+			messagePanel.AddItem(*options.Username + ": " + (message), "", 0, nil)
+			inputPanel.SetText("")
+		}
+	})
 
 	buffer := bufio.NewReader(connection)
 	for {

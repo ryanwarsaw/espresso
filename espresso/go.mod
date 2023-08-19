@@ -2,10 +2,6 @@ module ryanwarsaw.com/espresso
 
 go 1.19
 
-replace ryanwarsaw.com/protocol => ../protocol
-
-require ryanwarsaw.com/protocol v0.0.0-00010101000000-000000000000
-
 require (
 	github.com/gdamore/encoding v1.0.0 // indirect
 	github.com/gdamore/tcell/v2 v2.4.1-0.20210905002822-f057f0a857a1
